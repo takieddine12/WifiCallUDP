@@ -18,37 +18,7 @@
         android:text="@string/incomingCall"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:gravity="center_horizontal" >
 
-        <Button
-            android:id="@+id/buttonAccept"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/accept" />
 
-        <Button
-            android:id="@+id/buttonReject"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/reject" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal" >
-
-        <Button
-            android:id="@+id/buttonEndCall1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/endCall" />
-
-    </LinearLayout>
 
 </LinearLayout>

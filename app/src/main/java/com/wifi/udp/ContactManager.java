@@ -21,16 +21,15 @@ public class ContactManager {
 	private boolean BROADCAST = true;
 	private boolean LISTEN = true;
 
-	private int broadcastPort;
-	private ArrayList<WifiModel> contacts;
-	private InetAddress broadcastIP;
+	private final int broadcastPort;
+	private final ArrayList<WifiModel> contacts;
+	private final InetAddress broadcastIP;
 	
 	public ContactManager(String name, InetAddress broadcastIP,int broadcastPort) {
 		
 		contacts = new ArrayList<>();
 		this.broadcastIP = broadcastIP;
 		this.broadcastPort = broadcastPort;
-		Log.d("UDPS TAG","VALUE 2 " + broadcastIP.getHostAddress());
 		listen();
 		broadcastName(name, broadcastIP);
 	}
@@ -43,48 +42,40 @@ public class ContactManager {
 		// If the contact is not already known to us, add it
 		if(!name.equals(Build.MODEL)) {
 			contacts.add(new WifiModel(address,name));
-			Log.d("UDP TAG","Ip Address " + contacts.get(0).getInetAddress().getHostAddress());
 			return;
 		}
 		Log.i(LOG_TAG, "Contact already exists: " + name);
-		return;
 	}
 	
 	public void removeContact(String name) {
 		// If the contact is known to us, remove it
 		contacts.clear();
 		Log.i(LOG_TAG, "Cannot remove contact. " + name + " does not exist.");
-		return;
 	}
 	
 	public void bye(final String name) {
 		// Sends a Bye notification to other devices
-		Thread byeThread = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				
-				try {
-					Log.i(LOG_TAG, "Attempting to broadcast BYE notification!");
-					String notification = "BYE:"+name;
-					byte[] message = notification.getBytes();
-					DatagramSocket socket = new DatagramSocket();
-					socket.setBroadcast(true);
-					DatagramPacket packet = new DatagramPacket(message, message.length, broadcastIP, broadcastPort);
-					socket.send(packet);
-					Log.i(LOG_TAG, "Broadcast BYE notification!");
-					socket.disconnect();
-					socket.close();
-					return;
-				}
-				catch(SocketException e) {
-					
-					Log.e(LOG_TAG, "SocketException during BYE notification: " + e);
-				}
-				catch(IOException e) {
-					
-					Log.e(LOG_TAG, "IOException during BYE notification: " + e);
-				}
+		Thread byeThread = new Thread(() -> {
+
+			try {
+				Log.i(LOG_TAG, "Attempting to broadcast BYE notification!");
+				String notification = "BYE:"+name;
+				byte[] message = notification.getBytes();
+				DatagramSocket socket = new DatagramSocket();
+				socket.setBroadcast(true);
+				DatagramPacket packet = new DatagramPacket(message, message.length, broadcastIP, broadcastPort);
+				socket.send(packet);
+				Log.i(LOG_TAG, "Broadcast BYE notification!");
+				socket.disconnect();
+				socket.close();
+			}
+			catch(SocketException e) {
+
+				Log.e(LOG_TAG, "SocketException during BYE notification: " + e);
+			}
+			catch(IOException e) {
+
+				Log.e(LOG_TAG, "IOException during BYE notification: " + e);
 			}
 		});
 		byeThread.start();
@@ -93,46 +84,38 @@ public class ContactManager {
 	public void broadcastName(final String name, final InetAddress broadcastIP) {
 		// Broadcasts the name of the device at a regular interval
 		Log.i(LOG_TAG, "Broadcasting started!");
-		Thread broadcastThread = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				
-				try {
-					
-					String request = "ADD:"+name;
-					byte[] message = request.getBytes();
-					DatagramSocket socket = new DatagramSocket();
-					socket.setBroadcast(true);
-					DatagramPacket packet = new DatagramPacket(message, message.length, broadcastIP, broadcastPort);
-					while(BROADCAST) {
-						socket.send(packet);
-						Log.i(LOG_TAG, "Broadcast packet sent: " + packet.getAddress().toString());
-						Thread.sleep(BROADCAST_INTERVAL);
-					}
-					Log.i(LOG_TAG, "Broadcaster ending!");
-					socket.disconnect();
-					socket.close();
-					return;
+		Thread broadcastThread = new Thread(() -> {
+
+			try {
+
+				String request = "ADD:"+name;
+				byte[] message = request.getBytes();
+				DatagramSocket socket = new DatagramSocket();
+				socket.setBroadcast(true);
+				DatagramPacket packet = new DatagramPacket(message, message.length, broadcastIP, broadcastPort);
+				while(BROADCAST) {
+					socket.send(packet);
+					Log.i(LOG_TAG, "Broadcast packet sent: " + packet.getAddress().toString());
+					Thread.sleep(BROADCAST_INTERVAL);
 				}
-				catch(SocketException e) {
-					
-					Log.e(LOG_TAG, "SocketExceltion in broadcast: " + e);
-					Log.i(LOG_TAG, "Broadcaster ending!");
-					return;
-				}
-				catch(IOException e) {
-					
-					Log.e(LOG_TAG, "IOException in broadcast: " + e);
-					Log.i(LOG_TAG, "Broadcaster ending!");
-					return;
-				}
-				catch(InterruptedException e) {
-					
-					Log.e(LOG_TAG, "InterruptedException in broadcast: " + e);
-					Log.i(LOG_TAG, "Broadcaster ending!");
-					return;
-				}
+				Log.i(LOG_TAG, "Broadcaster ending!");
+				socket.disconnect();
+				socket.close();
+			}
+			catch(SocketException e) {
+
+				Log.e(LOG_TAG, "SocketExceltion in broadcast: " + e);
+				Log.i(LOG_TAG, "Broadcaster ending!");
+			}
+			catch(IOException e) {
+
+				Log.e(LOG_TAG, "IOException in broadcast: " + e);
+				Log.i(LOG_TAG, "Broadcaster ending!");
+			}
+			catch(InterruptedException e) {
+
+				Log.e(LOG_TAG, "InterruptedException in broadcast: " + e);
+				Log.i(LOG_TAG, "Broadcaster ending!");
 			}
 		});
 		broadcastThread.start();
@@ -204,13 +187,11 @@ public class ContactManager {
 					
 						listen(socket, buffer);
 					}
-					return;
 				}
 				catch(SocketException e) {
 					
 					Log.e(LOG_TAG, "SocketException in listen: " + e);
 					Log.i(LOG_TAG, "Listener ending!");
-					return;
 				}
 				catch(IOException e) {
 					

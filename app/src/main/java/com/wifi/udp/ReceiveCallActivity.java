@@ -42,67 +42,29 @@ public class ReceiveCallActivity extends Activity {
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + contactName);
 
-        final Button endButton = (Button) findViewById(R.id.buttonEndCall1);
-        endButton.setVisibility(View.INVISIBLE);
-
         startListener();
+        acceptCall();
 
-        // ACCEPT BUTTON
-        Button acceptButton = (Button) findViewById(R.id.buttonAccept);
-        acceptButton.setOnClickListener(new View.OnClickListener() {
+    }
 
-            @Override
-            public void onClick(View v) {
+    private void acceptCall() {
+        try {
+            // Accepting call. Send a notification and start the call
+            sendMessage("ACC:");
+            InetAddress address = InetAddress.getByName(contactIp);
+            Log.i(LOG_TAG, "Calling " + address.toString());
+            IN_CALL = true;
+            call = new AudioCall(address);
+            call.startCall();
+        }
+        catch(UnknownHostException e) {
 
-                try {
-                    // Accepting call. Send a notification and start the call
-                    sendMessage("ACC:");
-                    InetAddress address = InetAddress.getByName(contactIp);
-                    Log.i(LOG_TAG, "Calling " + address.toString());
-                    IN_CALL = true;
-                    call = new AudioCall(address);
-                    call.startCall();
-                    // Hide the buttons as they're not longer required
-                    Button accept = (Button) findViewById(R.id.buttonAccept);
-                    accept.setEnabled(false);
+            Log.e(LOG_TAG, "UnknownHostException in acceptButton: " + e);
+        }
+        catch(Exception e) {
 
-                    Button reject = (Button) findViewById(R.id.buttonReject);
-                    reject.setEnabled(false);
-
-                    endButton.setVisibility(View.VISIBLE);
-                }
-                catch(UnknownHostException e) {
-
-                    Log.e(LOG_TAG, "UnknownHostException in acceptButton: " + e);
-                }
-                catch(Exception e) {
-
-                    Log.e(LOG_TAG, "Exception in acceptButton: " + e);
-                }
-            }
-        });
-
-        // REJECT BUTTON
-        Button rejectButton = (Button) findViewById(R.id.buttonReject);
-        rejectButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                // Send a reject notification and end the call
-                sendMessage("REJ:");
-                endCall();
-            }
-        });
-
-        // END BUTTON
-        endButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-
-                endCall();
-            }
-        });
+            Log.e(LOG_TAG, "Exception in acceptButton: " + e);
+        }
     }
 
     private void endCall() {

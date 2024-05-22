@@ -90,7 +90,6 @@ public class MainActivity extends Activity {
                 btnStart.setEnabled(false);
 
                 contactManager = new ContactManager(displayName,formattedIp(ipAddress),Integer.parseInt(port));
-                Log.d("UDPS TAG","VALUE 1 " + formattedIp(ipAddress));
                 startCallListener();
                 listenToContact();
             }
@@ -111,9 +110,7 @@ public class MainActivity extends Activity {
                     InetAddress ip = contactManager.getContacts().get(0).getInetAddress();
                     String contact = contactManager.getContacts().get(0).getContact();
                     IN_CALL = true;
-
                     try {
-
                         Intent intent = new Intent(MainActivity.this, MakeCallActivity.class);
                         intent.putExtra(EXTRA_CONTACT, contact);
                         String address = ip.toString();
@@ -127,7 +124,6 @@ public class MainActivity extends Activity {
                 } else {
                     // No contact selected, post the Runnable again with a delay
                     handler.postDelayed(this, 1000);
-                    Toast.makeText(MainActivity.this,"Waiting for receiver",Toast.LENGTH_LONG).show();
                 }
             }
         };
