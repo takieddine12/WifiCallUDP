@@ -94,7 +94,9 @@ public class MainActivity extends Activity {
 
                 btnStart.setEnabled(false);
 
-                contactManager = new ContactManager(displayName,getCurrentIp(),Integer.parseInt(port));
+                Log.d("UDP TAG","Ip Address " + formattedIp(ipAddress));
+                Log.i("UDP TAG","Port " + Integer.parseInt(port));
+                contactManager = new ContactManager(displayName,formattedIp(ipAddress),Integer.parseInt(port));
                 startCallListener();
                 listenToContact();
             }
@@ -135,11 +137,28 @@ public class MainActivity extends Activity {
         };
          handler.post(checkRadioGroupRunnable);
     }
+
+    private InetAddress formattedIp(String userIp){
+        try {
+            String[] parts = userIp.split("\\.");
+
+            int combined = (Integer.parseInt(parts[3]) << 24)
+                    | (Integer.parseInt(parts[2]) << 16)
+                    | (Integer.parseInt(parts[1]) << 8)
+                    | Integer.parseInt(parts[0]);
+
+            return InetAddress.getByName(Formatter.formatIpAddress(combined));
+        } catch (UnknownHostException e){
+            return null;
+        }
+    }
     private InetAddress getCurrentIp() {
         try {
             WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-            String ip = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
-            return InetAddress.getByName(ip);
+            int ip = wifiManager.getConnectionInfo().getIpAddress();
+            String addressString = Formatter.formatIpAddress(ip);
+            Log.d("UDP TAG","Ip Address2 " + addressString);
+            return InetAddress.getByName(addressString);
         } catch (UnknownHostException e){
             return null;
         }
@@ -250,5 +269,11 @@ public class MainActivity extends Activity {
         STARTED = true;
         contactManager = new ContactManager(displayName, getCurrentIp(),Integer.parseInt(port));
         startCallListener();
+    }
+
+    @Override
+    protected void onDestroy() {
+        handler.removeCallbacksAndMessages("");
+        super.onDestroy();
     }
 }
