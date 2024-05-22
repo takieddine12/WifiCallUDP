@@ -128,7 +128,7 @@ public class ReceiveCallActivity extends Activity {
 
                     Log.i(LOG_TAG, "Listener started!");
                     DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
-                    socket.setSoTimeout(1500);
+                    socket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while(LISTEN) {

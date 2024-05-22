@@ -1,20 +1,9 @@
 package com.wifi.udp;
 
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Objects;
-
+import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,17 +14,24 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Objects;
 
 public class MainActivity extends Activity {
 
     static final String LOG_TAG = "UDPchat";
     private static final int LISTENER_PORT = 50003;
     private static final int BUF_SIZE = 1024;
+    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 100;
     private ContactManager contactManager;
     private String displayName;
     private boolean STARTED = false;
@@ -91,33 +87,33 @@ public class MainActivity extends Activity {
                 STARTED = true;
 
                 displayName = Build.MODEL;
-
                 btnStart.setEnabled(false);
 
-                Log.d("UDP TAG","Ip Address " + formattedIp(ipAddress));
-                Log.i("UDP TAG","Port " + Integer.parseInt(port));
                 contactManager = new ContactManager(displayName,formattedIp(ipAddress),Integer.parseInt(port));
+                Log.d("UDPS TAG","VALUE 1 " + formattedIp(ipAddress));
                 startCallListener();
                 listenToContact();
             }
         });
 
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO_PERMISSION);
+
     }
 
     private void listenToContact(){
 
-         Runnable checkRadioGroupRunnable = new Runnable() {
+        Runnable checkRadioGroupRunnable = new Runnable() {
             @Override
             public void run() {
 
                 if (!contactManager.getContacts().isEmpty() && contactManager.getContacts() != null){
-                    handler.removeCallbacksAndMessages("");
+                    handler.removeCallbacks(this);
                     InetAddress ip = contactManager.getContacts().get(0).getInetAddress();
                     String contact = contactManager.getContacts().get(0).getContact();
                     IN_CALL = true;
 
                     try {
-                        // Send this information to the MakeCallActivity and start that activity
+
                         Intent intent = new Intent(MainActivity.this, MakeCallActivity.class);
                         intent.putExtra(EXTRA_CONTACT, contact);
                         String address = ip.toString();
@@ -196,6 +192,7 @@ public class MainActivity extends Activity {
                             Log.i(LOG_TAG, "Packet received from "+ packet.getAddress() +" with contents: " + data);
                             String action = data.substring(0, 4);
                             if(action.equals("CAL:")) {
+                                handler.removeCallbacksAndMessages("");
                                 // Received a call request. Start the ReceiveCallActivity
                                 String address = packet.getAddress().toString();
                                 String name = data.substring(4, packet.getLength());
@@ -267,7 +264,7 @@ public class MainActivity extends Activity {
         Log.i(LOG_TAG, "App restarted!");
         IN_CALL = false;
         STARTED = true;
-        contactManager = new ContactManager(displayName, getCurrentIp(),Integer.parseInt(port));
+        contactManager = new ContactManager(displayName, formattedIp(ipAddress),Integer.parseInt(port));
         startCallListener();
     }
 

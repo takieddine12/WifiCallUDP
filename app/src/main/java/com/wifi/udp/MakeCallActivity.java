@@ -26,8 +26,8 @@ public class MakeCallActivity extends Activity {
     private static final String LOG_TAG = "MakeCall";
     private static final int BROADCAST_PORT = 50002;
     private static final int BUF_SIZE = 1024;
-    //private String displayName;
-    //private String contactName;
+    private String displayName;
+    private String contactName;
     private String contactIp;
     private boolean LISTEN = true;
     private boolean IN_CALL = false;
@@ -42,12 +42,15 @@ public class MakeCallActivity extends Activity {
         Log.i(LOG_TAG, "MakeCallActivity started!");
 
         Intent intent = getIntent();
-        //displayName = intent.getStringExtra(MainActivity.EXTRA_DISPLAYNAME);
-       // contactName = intent.getStringExtra(MainActivity.EXTRA_CONTACT);
+        displayName = intent.getStringExtra(MainActivity.EXTRA_DISPLAYNAME);
+        contactName = intent.getStringExtra(MainActivity.EXTRA_CONTACT);
         contactIp = intent.getStringExtra(MainActivity.EXTRA_IP);
 
+
+        Log.d("TAG","Contact IP "  + contactIp);
+
         TextView textView = (TextView) findViewById(R.id.textViewCalling);
-        //textView.setText("Calling: " + contactName);
+        textView.setText("Calling: " + contactName);
 
         startListener();
         makeCall();
@@ -68,7 +71,7 @@ public class MakeCallActivity extends Activity {
 
     private void makeCall() {
         // Send a request to start a call
-        sendMessage("CAL:"+ contactIp, 50003);
+        sendMessage("CAL:"+ displayName, 50003);
     }
 
     private void endCall() {
@@ -94,7 +97,7 @@ public class MakeCallActivity extends Activity {
 
                     Log.i(LOG_TAG, "Listener started!");
                     DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
-                    socket.setSoTimeout(15000);
+                    socket.setSoTimeout(30000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while(LISTEN) {

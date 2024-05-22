@@ -30,6 +30,7 @@ public class ContactManager {
 		contacts = new ArrayList<>();
 		this.broadcastIP = broadcastIP;
 		this.broadcastPort = broadcastPort;
+		Log.d("UDPS TAG","VALUE 2 " + broadcastIP.getHostAddress());
 		listen();
 		broadcastName(name, broadcastIP);
 	}
@@ -42,6 +43,7 @@ public class ContactManager {
 		// If the contact is not already known to us, add it
 		if(!name.equals(Build.MODEL)) {
 			contacts.add(new WifiModel(address,name));
+			Log.d("UDP TAG","Ip Address " + contacts.get(0).getInetAddress().getHostAddress());
 			return;
 		}
 		Log.i(LOG_TAG, "Contact already exists: " + name);
@@ -104,7 +106,6 @@ public class ContactManager {
 					socket.setBroadcast(true);
 					DatagramPacket packet = new DatagramPacket(message, message.length, broadcastIP, broadcastPort);
 					while(BROADCAST) {
-						
 						socket.send(packet);
 						Log.i(LOG_TAG, "Broadcast packet sent: " + packet.getAddress().toString());
 						Thread.sleep(BROADCAST_INTERVAL);
@@ -152,7 +153,6 @@ public class ContactManager {
 				
 				DatagramSocket socket;
 				try {
-					
 					socket = new DatagramSocket(broadcastPort);
 				} 
 				catch (SocketException e) {
@@ -173,7 +173,6 @@ public class ContactManager {
 			}
 			
 			public void listen(DatagramSocket socket, byte[] buffer) {
-				
 				try {
 					//Listen in for new notifications
 					Log.i(LOG_TAG, "Listening for a packet!");
@@ -197,7 +196,6 @@ public class ContactManager {
 						// Invalid notification received
 						Log.w(LOG_TAG, "Listener received invalid request: " + action);
 					}
-					
 				}
 				catch(SocketTimeoutException e) {
 					
