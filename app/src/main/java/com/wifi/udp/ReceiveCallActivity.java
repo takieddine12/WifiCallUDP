@@ -29,21 +29,37 @@ public class ReceiveCallActivity extends Activity {
     private boolean IN_CALL = false;
     private AudioCall call;
 
+    private Button acceptCall;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_call);
 
+
         Intent intent = getIntent();
         contactName = intent.getStringExtra(MainActivity.EXTRA_CONTACT);
         contactIp = intent.getStringExtra(MainActivity.EXTRA_IP);
 
+        Button acceptCall = findViewById(R.id.acceptCall);
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + contactName);
 
         startListener();
-        acceptCall();
+
+        acceptCall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (acceptCall.getText().equals("Accept")){
+                    acceptCall.setText("End");
+                    acceptCall();
+                } else {
+                    call.endCall();
+                }
+            }
+        });
+
 
     }
 
@@ -56,6 +72,7 @@ public class ReceiveCallActivity extends Activity {
             IN_CALL = true;
             call = new AudioCall(address);
             call.startCall();
+
         }
         catch(UnknownHostException e) {
 
@@ -102,6 +119,7 @@ public class ReceiveCallActivity extends Activity {
                             String data = new String(buffer, 0, packet.getLength());
                             Log.i(LOG_TAG, "Packet received from "+ packet.getAddress() +" with contents: " + data);
                             String action = data.substring(0, 4);
+                            stopListener();
                             if(action.equals("END:")) {
                                 // End call notification received. End call
                                 endCall();
@@ -119,7 +137,6 @@ public class ReceiveCallActivity extends Activity {
                     Log.i(LOG_TAG, "Listener ending");
                     socket.disconnect();
                     socket.close();
-                    return;
                 }
                 catch(SocketException e) {
 
@@ -148,7 +165,7 @@ public class ReceiveCallActivity extends Activity {
                     InetAddress address = InetAddress.getByName(contactIp);
                     byte[] data = message.getBytes();
                     DatagramSocket socket = new DatagramSocket();
-                    DatagramPacket packet = new DatagramPacket(data, data.length, address, BROADCAST_PORT);
+                    DatagramPacket packet = new DatagramPacket("".getBytes(),data.length, address, BROADCAST_PORT);
                     socket.send(packet);
                     Log.i(LOG_TAG, "Sent message( " + message + " ) to " + contactIp);
                     socket.disconnect();

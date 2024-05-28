@@ -39,15 +39,12 @@ public class MakeCallActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_make_call);
 
-        Log.i(LOG_TAG, "MakeCallActivity started!");
 
         Intent intent = getIntent();
         displayName = intent.getStringExtra(MainActivity.EXTRA_DISPLAYNAME);
         contactName = intent.getStringExtra(MainActivity.EXTRA_CONTACT);
         contactIp = intent.getStringExtra(MainActivity.EXTRA_IP);
 
-
-        Log.d("TAG","Contact IP "  + contactIp);
 
         TextView textView = (TextView) findViewById(R.id.textViewCalling);
         textView.setText("Calling: " + contactName);
@@ -73,18 +70,6 @@ public class MakeCallActivity extends Activity {
         // Send a request to start a call
         sendMessage("CAL:"+ displayName, 50003);
     }
-
-    private void endCall() {
-        // Ends the chat sessions
-        stopListener();
-        if(IN_CALL) {
-
-            call.endCall();
-        }
-        sendMessage("END:", BROADCAST_PORT);
-        finish();
-    }
-
     private void startListener() {
         // Create listener thread
         LISTEN = true;
@@ -115,7 +100,9 @@ public class MakeCallActivity extends Activity {
                                 call.startCall();
                                 IN_CALL = true;
                             }
-                            else if(action.equals("REJ:")) {
+
+
+                            if(action.equals("REJ:")) {
                                 // Reject notification received. End call
                                 endCall();
                             }
@@ -194,6 +181,19 @@ public class MakeCallActivity extends Activity {
         });
         replyThread.start();
     }
+
+    private void endCall() {
+        // Ends the chat sessions
+        stopListener();
+        if(IN_CALL) {
+
+            call.endCall();
+        }
+        sendMessage("END:", BROADCAST_PORT);
+        finish();
+    }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -38,6 +38,7 @@ public class MainActivity extends Activity {
     private boolean IN_CALL = false;
     private boolean LISTEN = false;
 
+    private boolean IN_CALL_ON = false;
     private Handler handler = new Handler();
     private EditText editIpAddress;
     private EditText editPort;
@@ -45,6 +46,13 @@ public class MainActivity extends Activity {
     private String ipAddress;
     private String port;
     private TextView ipText;
+
+    private Button buttonCall;
+    private boolean LISTEN_ON = true;
+
+    private AudioCall call;
+
+    private InetAddress callPacket;
 
     public final static String EXTRA_CONTACT = "hw.dt83.udpchat.CONTACT";
     public final static String EXTRA_IP = "hw.dt83.udpchat.IP";
@@ -58,21 +66,20 @@ public class MainActivity extends Activity {
 
         Log.i(LOG_TAG, "UDPChat started");
 
-        // START BUTTON
-        // Pressing this buttons initiates the main functionality
         editIpAddress = findViewById(R.id.editIpAddress);
         editPort = findViewById(R.id.editPort);
         ipText = findViewById(R.id.ipText);
         final Button btnStart = (Button) findViewById(R.id.buttonStart);
 
         ipText.setText(Objects.requireNonNull(getCurrentIp()).getHostAddress());
+
         btnStart.setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View v) {
 
-                 ipAddress = editIpAddress.getText().toString();
-                 port = editPort.getText().toString();
+                ipAddress = editIpAddress.getText().toString();
+                port = editPort.getText().toString();
 
                 if(ipAddress.equals("")){
                     Toast.makeText(MainActivity.this,"Ip Address cannot be empty",Toast.LENGTH_LONG).show();
@@ -99,18 +106,18 @@ public class MainActivity extends Activity {
 
     }
 
-    private void listenToContact(){
 
+    private void listenToContact() {
         Runnable checkRadioGroupRunnable = new Runnable() {
             @Override
             public void run() {
-
-                if (!contactManager.getContacts().isEmpty() && contactManager.getContacts() != null){
-                    handler.removeCallbacks(this);
+                // Check if listener is started, if so remove callbacks and return
+                if (!contactManager.getContacts().isEmpty() && contactManager.getContacts() != null) {
                     InetAddress ip = contactManager.getContacts().get(0).getInetAddress();
                     String contact = contactManager.getContacts().get(0).getContact();
                     IN_CALL = true;
                     try {
+
                         Intent intent = new Intent(MainActivity.this, MakeCallActivity.class);
                         intent.putExtra(EXTRA_CONTACT, contact);
                         String address = ip.toString();
@@ -118,6 +125,8 @@ public class MainActivity extends Activity {
                         intent.putExtra(EXTRA_IP, address);
                         intent.putExtra(EXTRA_DISPLAYNAME, displayName);
                         startActivity(intent);
+//                        startListener(address); // This will set isListenerStarted to true
+//                        makeCall(displayName, address);
                     } catch (Exception e) {
                         Log.d("TAG", "Crash " + e.getMessage());
                     }
@@ -127,7 +136,8 @@ public class MainActivity extends Activity {
                 }
             }
         };
-         handler.post(checkRadioGroupRunnable);
+
+        handler.post(checkRadioGroupRunnable);
     }
 
     private InetAddress formattedIp(String userIp){
@@ -144,6 +154,7 @@ public class MainActivity extends Activity {
             return null;
         }
     }
+
     private InetAddress getCurrentIp() {
         try {
             WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -165,7 +176,6 @@ public class MainActivity extends Activity {
     }
 
     private void startCallListener() {
-        // Creates the listener thread
         LISTEN = true;
         Thread listener = new Thread(new Runnable() {
 
@@ -176,7 +186,7 @@ public class MainActivity extends Activity {
                     // Set up the socket and packet to receive
                     Log.i(LOG_TAG, "Incoming call listener started");
                     DatagramSocket socket = new DatagramSocket(LISTENER_PORT);
-                    socket.setSoTimeout(1000);
+                    socket.setSoTimeout(30000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while(LISTEN) {
@@ -188,7 +198,6 @@ public class MainActivity extends Activity {
                             Log.i(LOG_TAG, "Packet received from "+ packet.getAddress() +" with contents: " + data);
                             String action = data.substring(0, 4);
                             if(action.equals("CAL:")) {
-                                handler.removeCallbacksAndMessages("");
                                 // Received a call request. Start the ReceiveCallActivity
                                 String address = packet.getAddress().toString();
                                 String name = data.substring(4, packet.getLength());
@@ -231,7 +240,6 @@ public class MainActivity extends Activity {
 
         super.onPause();
         if(STARTED) {
-
             contactManager.bye(displayName);
             contactManager.stopBroadcasting();
             contactManager.stopListening();
@@ -269,4 +277,10 @@ public class MainActivity extends Activity {
         handler.removeCallbacksAndMessages("");
         super.onDestroy();
     }
+
+    private void getTag(String message){
+        Log.d("Call Msg",message);
+    }
+
+
 }
